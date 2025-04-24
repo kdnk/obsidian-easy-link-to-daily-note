@@ -1,22 +1,43 @@
-import { Notice, Plugin } from "obsidian";
+import { App, Notice, Plugin, PluginManifest } from "obsidian";
+import { EasyUniqueNotePluginSettingsTab } from "./settings/settings";
+import {
+	DEFAULT_SETTINGS,
+	EasyUniqueNoteSettings,
+} from "./settings/settings-info";
 
 // Remember to rename these classes and interfaces!
 
 export default class EasyUniqueNotePlugin extends Plugin {
+	settings: EasyUniqueNoteSettings;
+
+	constructor(app: App, pluginManifest: PluginManifest) {
+		super(app, pluginManifest);
+	}
+
 	async addUniqueNote() {
-		const uniqueNotePath = `pages/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
-		const todayPath = `journals/${window.moment().format("YYYY-MM-DD")}.md`;
+		const journalDir = this.settings.dailyNoteDir;
+		const baseDir = this.settings.baseDir;
+
+		if (!journalDir || !baseDir) {
+			new Notice(
+				"Please set the base directory and daily note directory in the plugin settings.",
+			);
+			return;
+		}
+
+		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
+		const todayPath = `${journalDir}/${window.moment().format("YYYY-MM-DD")}.md`;
 		const todayFile = this.app.vault.getFileByPath(todayPath);
 		const currentTime = window.moment().format("HH:mm");
 
 		if (todayFile) {
 			const uniqueFile = await this.app.vault.create(
 				`${uniqueNotePath}`,
-				`- [[${this.getFileName(todayPath)}]] ${currentTime}`,
+				`- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`,
 			);
 			this.app.vault.append(
 				todayFile,
-				`- ${currentTime} [[${this.getFileName(uniqueNotePath)}]] `,
+				`- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `,
 			);
 
 			const leaf = this.app.workspace.getLeaf(false);
@@ -30,25 +51,28 @@ export default class EasyUniqueNotePlugin extends Plugin {
 		}
 	}
 
-	private getFileName(path: string) {
+	private getCanonicalFileName(path: string) {
 		let fileName = path;
 		if (path.endsWith(".md")) {
 			fileName = fileName.slice(0, -3);
 		}
 
-		if (path.startsWith("pages/")) {
-			fileName = fileName.slice(6);
+		const baseDir = this.settings.baseDir;
+		if (path.startsWith(`${baseDir}/`)) {
+			fileName = fileName.slice(baseDir.length + 1);
 		}
 
-		if (path.startsWith("journals/")) {
-			fileName = fileName.slice(9);
+		const journalDir = this.settings.dailyNoteDir;
+		if (path.startsWith(`${journalDir}/`)) {
+			fileName = fileName.slice(journalDir.length + 1);
 		}
 
 		return fileName;
 	}
 
 	async onload() {
-		// await this.loadSettings();
+		await this.loadSettings();
+		this.addSettingTab(new EasyUniqueNotePluginSettingsTab(this.app, this));
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -58,7 +82,27 @@ export default class EasyUniqueNotePlugin extends Plugin {
 				await this.addUniqueNote();
 			},
 		});
+
+		this.addRibbonIcon(
+			"create-new",
+			"Create a easy unique note",
+			async () => {
+				await this.addUniqueNote();
+			},
+		);
 	}
 
 	onunload() {}
+
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData(),
+		);
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
+	}
 }
