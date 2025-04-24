@@ -3,6 +3,7 @@
 	"version": "0.0.5",
 	"description": "A simple plugin to create unique notes.",
 	"main": "main.js",
+	"types": "obsidian.d.ts",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
