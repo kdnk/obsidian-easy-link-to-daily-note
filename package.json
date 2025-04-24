@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-easy-unique-note",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "A simple plugin to create unique notes.",
 	"main": "main.js",
 	"scripts": {
