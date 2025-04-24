@@ -77,7 +77,7 @@ export default class EasyUniqueNotePlugin extends Plugin {
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
 			id: "easy-unique-note-create",
-			name: "Create unique note",
+			name: "Create an easy unique note",
 			callback: async () => {
 				await this.addUniqueNote();
 			},
@@ -85,7 +85,7 @@ export default class EasyUniqueNotePlugin extends Plugin {
 
 		this.addRibbonIcon(
 			"create-new",
-			"Create a easy unique note",
+			"Create an easy unique note",
 			async () => {
 				await this.addUniqueNote();
 			},
