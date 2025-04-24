@@ -1,7 +1,7 @@
 {
 	"id": "easy-unique-note",
 	"name": "Easy Unique Note",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"minAppVersion": "1.8.10",
 	"description": "A simple plugin to create unique notes.",
 	"author": "Kodai Nakamura",
