@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginManifest } from "obsidian";
+import { App, parseFrontMatterTags, parseFrontMatterStringArray, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
 import { EasyUniqueNotePluginSettingsTab } from "./settings/settings";
 import {
 	DEFAULT_SETTINGS,
@@ -108,6 +108,29 @@ export default class EasyUniqueNotePlugin extends Plugin {
 				await this.addUniqueNote();
 			},
 		);
+
+		this.app.workspace.onLayoutReady(() => {
+			this.registerEvent(
+				this.app.vault.on('create', async (file: TFile) => {
+					if (!this.settings.shouldAppendWebClipper) return;
+
+					const unprocessedContent = await this.app.vault.read(file);
+					const fileContent = unprocessedContent.normalize("NFC");
+					const { frontmatter }  = getFrontMatterInfo(fileContent);
+					const tags = parseYaml(frontmatter)?.tags
+
+					if (!tags) return;
+					if (!tags.includes("clippings")) return;
+
+					const { todayFile } = this.getTodayFileAndPath();
+					const currentTime = window.moment().format("HH:mm");
+					this.app.vault.append(
+						todayFile,
+						`- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `,
+					);
+				})
+			)
+		})
 	}
 
 	onunload() {}

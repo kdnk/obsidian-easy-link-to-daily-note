@@ -37,5 +37,18 @@ export class EasyUniqueNotePluginSettingsTab extends PluginSettingTab {
 						await this.plugin.saveData(this.plugin.settings);
 					});
 			});
+
+		// Setting for web clipper
+		new Setting(containerEl)
+			.setName("Append web clipper's link to daily note")
+			.setDesc("")
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.shouldAppendWebClipper)
+					.onChange(async (value) => {
+						this.plugin.settings.shouldAppendWebClipper = value;
+						await this.plugin.saveData(this.plugin.settings);
+					});
+			});
 	}
 }
