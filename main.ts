@@ -5,8 +5,6 @@ import {
 	EasyUniqueNoteSettings,
 } from "./settings/settings-info";
 
-// Remember to rename these classes and interfaces!
-
 export default class EasyUniqueNotePlugin extends Plugin {
 	settings: EasyUniqueNoteSettings;
 
