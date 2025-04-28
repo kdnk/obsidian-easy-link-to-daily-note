@@ -25,9 +25,9 @@ export default class EasyUniqueNotePlugin extends Plugin {
 			return;
 		}
 
+		const { todayFile, todayPath } = this.getTodayFileAndPath();
+
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
-		const todayPath = `${journalDir}/${window.moment().format("YYYY-MM-DD")}.md`;
-		const todayFile = this.app.vault.getFileByPath(todayPath);
 		const currentTime = window.moment().format("HH:mm");
 
 		if (todayFile) {
@@ -48,6 +48,27 @@ export default class EasyUniqueNotePlugin extends Plugin {
 			new Notice(
 				"Please create a journal for today first. The journal file should be in the format `YYYY-MM-DD.md`.",
 			);
+		}
+	}
+
+	private getTodayFileAndPath() {
+		const journalDir = this.settings.dailyNoteDir;
+		if (!journalDir) {
+			new Notice(
+				"Please set the daily note directory in the plugin settings.",
+			);
+			throw new Error("Please set the daily note directory in the plugin settings.")
+		}
+		const todayPath = `${journalDir}/${window.moment().format("YYYY-MM-DD")}.md`;
+		const todayFile = this.app.vault.getFileByPath(todayPath);
+
+		if (!todayFile) {
+			throw new Error(`Today's file (${todayPath}) cannot be found.`)
+		}
+
+		return {
+			todayFile,
+			todayPath
 		}
 	}
 
