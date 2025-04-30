@@ -1,4 +1,4 @@
-# 🦄 Obsidian Easy Unique Note 📝
+# 🌍 Daily Note Centric 📅
 
 ## 🎯 Overview
 
@@ -14,7 +14,7 @@ Add Links to Daily NotesAutomatically append a link to the newly created note at
 
 ## 💻 Commands
 
-`Create an easy unique note`
+`Create a unique note`
 
 You can freely assign a hotkey to this command. (⌘+J is recommended)
 

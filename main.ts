@@ -1,12 +1,12 @@
 import { App, parseFrontMatterTags, parseFrontMatterStringArray, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
-import { EasyUniqueNotePluginSettingsTab } from "./settings/settings";
+import { DailyNoteCentricPluginSettingsTab } from "./settings/settings";
 import {
 	DEFAULT_SETTINGS,
-	EasyUniqueNoteSettings,
+	DailyNoteCentricSettings,
 } from "./settings/settings-info";
 
-export default class EasyUniqueNotePlugin extends Plugin {
-	settings: EasyUniqueNoteSettings;
+export default class DailyNoteCentricPlugin extends Plugin {
+	settings: DailyNoteCentricSettings;
 
 	constructor(app: App, pluginManifest: PluginManifest) {
 		super(app, pluginManifest);
@@ -88,12 +88,12 @@ export default class EasyUniqueNotePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(new EasyUniqueNotePluginSettingsTab(this.app, this));
+		this.addSettingTab(new DailyNoteCentricPluginSettingsTab(this.app, this));
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: "easy-unique-note-create",
-			name: "Create an easy unique note",
+			id: "daily-note-centric-create",
+			name: "Create a unique note",
 			callback: async () => {
 				await this.addUniqueNote();
 			},
@@ -101,7 +101,7 @@ export default class EasyUniqueNotePlugin extends Plugin {
 
 		this.addRibbonIcon(
 			"create-new",
-			"Create an easy unique note",
+			"Create a unique note",
 			async () => {
 				await this.addUniqueNote();
 			},

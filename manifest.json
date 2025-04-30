@@ -1,9 +1,9 @@
 {
-	"id": "easy-unique-note",
-	"name": "Easy Unique Note",
+	"id": "daily-note-centric",
+	"name": "Daily Note Centric",
 	"version": "0.0.8",
 	"minAppVersion": "1.8.10",
-	"description": "A simple plugin to create unique notes.",
+	"description": "A simple plugin to link new notes to the daily note.",
 	"author": "Kodai Nakamura",
 	"isDesktopOnly": false
 }

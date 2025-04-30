@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-easy-unique-note",
+	"name": "obsidian-daily-note-centric",
 	"version": "0.0.8",
-	"description": "A simple plugin to create unique notes.",
+	"description": "A simple plugin to link new notes to the daily note.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
