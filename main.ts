@@ -1,4 +1,12 @@
-import { App, parseFrontMatterTags, parseFrontMatterStringArray, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
+import {
+	App,
+	parseYaml,
+	getFrontMatterInfo,
+	Notice,
+	Plugin,
+	PluginManifest,
+	TFile,
+} from "obsidian";
 import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
 import {
 	DEFAULT_SETTINGS,
@@ -49,22 +57,22 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			new Notice(
 				"Please set the daily note directory in the plugin settings.",
 			);
-			throw new Error("Please set the daily note directory in the plugin settings.")
+			throw new Error(
+				"Please set the daily note directory in the plugin settings.",
+			);
 		}
 		const todayPath = `${journalDir}/${window.moment().format("YYYY-MM-DD")}.md`;
 		const todayFile = this.app.vault.getFileByPath(todayPath);
 
 		if (!todayFile) {
-			new Notice(
-				`Today's file (${todayPath}) cannot be found.`,
-			);
-			throw new Error(`Today's file (${todayPath}) cannot be found.`)
+			new Notice(`Today's file (${todayPath}) cannot be found.`);
+			throw new Error(`Today's file (${todayPath}) cannot be found.`);
 		}
 
 		return {
 			todayFile,
-			todayPath
-		}
+			todayPath,
+		};
 	}
 
 	private getCanonicalFileName(path: string) {
@@ -88,7 +96,9 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(new EasyLinkToDailyNotePluginSettingsTab(this.app, this));
+		this.addSettingTab(
+			new EasyLinkToDailyNotePluginSettingsTab(this.app, this),
+		);
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -99,23 +109,19 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			},
 		});
 
-		this.addRibbonIcon(
-			"create-new",
-			"Create a unique note",
-			async () => {
-				await this.addUniqueNote();
-			},
-		);
+		this.addRibbonIcon("create-new", "Create a unique note", async () => {
+			await this.addUniqueNote();
+		});
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
-				this.app.vault.on('create', async (file: TFile) => {
+				this.app.vault.on("create", async (file: TFile) => {
 					if (!this.settings.shouldAppendWebClipper) return;
 
 					const unprocessedContent = await this.app.vault.read(file);
 					const fileContent = unprocessedContent.normalize("NFC");
-					const { frontmatter }  = getFrontMatterInfo(fileContent);
-					const tags = parseYaml(frontmatter)?.tags
+					const { frontmatter } = getFrontMatterInfo(fileContent);
+					const tags = parseYaml(frontmatter)?.tags;
 
 					if (!tags) return;
 					if (!tags.includes("clippings")) return;
@@ -126,9 +132,9 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 						todayFile,
 						`- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `,
 					);
-				})
-			)
-		})
+				}),
+			);
+		});
 	}
 
 	onunload() {}
