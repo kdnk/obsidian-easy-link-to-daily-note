@@ -1,17 +1,6 @@
-import {
-	App,
-	parseYaml,
-	getFrontMatterInfo,
-	Notice,
-	Plugin,
-	PluginManifest,
-	TFile,
-} from "obsidian";
+import { App, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
 import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
-import {
-	DEFAULT_SETTINGS,
-	EasyLinkToDailyNoteSettings,
-} from "./settings/settings-info";
+import { DEFAULT_SETTINGS, EasyLinkToDailyNoteSettings } from "./settings/settings-info";
 
 export default class EasyLinkToDailyNotePlugin extends Plugin {
 	settings: EasyLinkToDailyNoteSettings;
@@ -25,9 +14,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const baseDir = this.settings.baseDir;
 
 		if (!journalDir || !baseDir) {
-			new Notice(
-				"Please set the base directory and daily note directory in the plugin settings.",
-			);
+			new Notice("Please set the base directory and daily note directory in the plugin settings.");
 			return;
 		}
 
@@ -36,14 +23,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		const uniqueFile = await this.app.vault.create(
-			`${uniqueNotePath}`,
-			`- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`,
-		);
-		this.app.vault.append(
-			todayFile,
-			`- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `,
-		);
+		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
+		this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `);
 
 		const leaf = this.app.workspace.getLeaf(false);
 		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
@@ -54,12 +35,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	private getTodayFileAndPath() {
 		const journalDir = this.settings.dailyNoteDir;
 		if (!journalDir) {
-			new Notice(
-				"Please set the daily note directory in the plugin settings.",
-			);
-			throw new Error(
-				"Please set the daily note directory in the plugin settings.",
-			);
+			new Notice("Please set the daily note directory in the plugin settings.");
+			throw new Error("Please set the daily note directory in the plugin settings.");
 		}
 		const todayPath = `${journalDir}/${window.moment().format("YYYY-MM-DD")}.md`;
 		const todayFile = this.app.vault.getFileByPath(todayPath);
@@ -96,9 +73,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(
-			new EasyLinkToDailyNotePluginSettingsTab(this.app, this),
-		);
+		this.addSettingTab(new EasyLinkToDailyNotePluginSettingsTab(this.app, this));
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
@@ -114,24 +89,33 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(() => {
+			const processedFileMap = new Map<string, boolean>();
 			this.registerEvent(
 				this.app.vault.on("create", async (file: TFile) => {
 					if (!this.settings.shouldAppendWebClipper) return;
 
-					const unprocessedContent = await this.app.vault.read(file);
-					const fileContent = unprocessedContent.normalize("NFC");
-					const { frontmatter } = getFrontMatterInfo(fileContent);
-					const tags = parseYaml(frontmatter)?.tags;
+					const append = async () => {
+						if (!this.app.metadataCache.resolvedLinks[file.path]) {
+							const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+							await sleep(50);
+							await append();
+							return;
+						} else {
+							processedFileMap.set(file.path, true);
+							const unprocessedContent = await this.app.vault.read(file);
+							const fileContent = unprocessedContent.normalize("NFC");
+							const { frontmatter } = getFrontMatterInfo(fileContent);
+							const tags = parseYaml(frontmatter)?.tags;
 
-					if (!tags) return;
-					if (!tags.includes("clippings")) return;
-
-					const { todayFile } = this.getTodayFileAndPath();
-					const currentTime = window.moment().format("HH:mm");
-					this.app.vault.append(
-						todayFile,
-						`- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `,
-					);
+							if (!tags) return;
+							if (!tags.includes("clippings")) return;
+							const { todayFile } = this.getTodayFileAndPath();
+							const currentTime = window.moment().format("HH:mm");
+							this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
+							return;
+						}
+					};
+					await append();
 				}),
 			);
 		});
@@ -140,11 +124,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	onunload() {}
 
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData(),
-		);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {
