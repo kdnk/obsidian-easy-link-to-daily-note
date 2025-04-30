@@ -1,9 +1,9 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import DailyNoteCentricPlugin from "../main";
+import EasyLinkToDailyNotePlugin from "../main";
 
-export class DailyNoteCentricPluginSettingsTab extends PluginSettingTab {
-	plugin: DailyNoteCentricPlugin;
-	constructor(app: App, plugin: DailyNoteCentricPlugin) {
+export class EasyLinkToDailyNotePluginSettingsTab extends PluginSettingTab {
+	plugin: EasyLinkToDailyNotePlugin;
+	constructor(app: App, plugin: EasyLinkToDailyNotePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

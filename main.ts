@@ -1,12 +1,12 @@
 import { App, parseFrontMatterTags, parseFrontMatterStringArray, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
-import { DailyNoteCentricPluginSettingsTab } from "./settings/settings";
+import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
 import {
 	DEFAULT_SETTINGS,
-	DailyNoteCentricSettings,
+	EasyLinkToDailyNoteSettings,
 } from "./settings/settings-info";
 
-export default class DailyNoteCentricPlugin extends Plugin {
-	settings: DailyNoteCentricSettings;
+export default class EasyLinkToDailyNotePlugin extends Plugin {
+	settings: EasyLinkToDailyNoteSettings;
 
 	constructor(app: App, pluginManifest: PluginManifest) {
 		super(app, pluginManifest);
@@ -88,11 +88,11 @@ export default class DailyNoteCentricPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.addSettingTab(new DailyNoteCentricPluginSettingsTab(this.app, this));
+		this.addSettingTab(new EasyLinkToDailyNotePluginSettingsTab(this.app, this));
 
 		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: "daily-note-centric-create",
+			id: "easy-link-to-daily-note-create",
 			name: "Create a unique note",
 			callback: async () => {
 				await this.addUniqueNote();
