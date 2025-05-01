@@ -10,21 +10,13 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	}
 
 	async addUniqueNote() {
-		const journalDir = this.settings.dailyNoteDir;
-		const baseDir = this.settings.baseDir;
-
-		if (!journalDir || !baseDir) {
-			new Notice("Please set the base directory and daily note directory in the plugin settings.");
-			return;
-		}
-
 		const { todayFile, todayPath } = this.getTodayFileAndPath();
-
+		const baseDir = this.settings.baseDir;
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
 		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
-		this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `);
+		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `);
 
 		const leaf = this.app.workspace.getLeaf(false);
 		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
@@ -59,6 +51,11 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		}
 
 		const baseDir = this.settings.baseDir;
+		if (!baseDir) {
+			new Notice("Please set the base directory in the plugin settings.");
+			throw new Error("Please set the base directory in the plugin settings.");
+		}
+
 		if (path.startsWith(`${baseDir}/`)) {
 			fileName = fileName.slice(baseDir.length + 1);
 		}
