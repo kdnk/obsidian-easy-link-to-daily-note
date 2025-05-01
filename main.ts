@@ -34,8 +34,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const todayFile = this.app.vault.getFileByPath(todayPath);
 
 		if (!todayFile) {
-			new Notice(`Today's file (${todayPath}) cannot be found.`);
-			throw new Error(`Today's file (${todayPath}) cannot be found.`);
+			new Notice(`Today's daily note (${todayPath}) cannot be found.`);
+			throw new Error(`Today's daily note (${todayPath}) cannot be found.`);
 		}
 
 		return {
