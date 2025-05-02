@@ -2,6 +2,8 @@ import { App, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFi
 import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
 import { DEFAULT_SETTINGS, EasyLinkToDailyNoteSettings } from "./settings/settings-info";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export default class EasyLinkToDailyNotePlugin extends Plugin {
 	settings: EasyLinkToDailyNoteSettings;
 
@@ -15,10 +17,23 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
-		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]] `);
-
 		const leaf = this.app.workspace.getLeaf(false);
+		await leaf.openFile(todayFile);
+
+		// NOTE: Run save command to ensure the daily not is formatted
+		const saveCommandDefinition =
+			// @ts-expect-error
+			this.app?.commands?.commands?.["editor:save-file"];
+		const save = saveCommandDefinition?.callback;
+		if (typeof save === "function") {
+			await save();
+			// wait for the file to be saved
+			await sleep(50);
+		}
+
+		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
+		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
+
 		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
 		// https://liamca.in/Obsidian/API+FAQ/views/focus+the+note+title+with+the+cursor
 		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
@@ -93,7 +108,6 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 					const append = async () => {
 						if (!this.app.metadataCache.resolvedLinks[file.path]) {
-							const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 							await sleep(50);
 							await append();
 							return;
