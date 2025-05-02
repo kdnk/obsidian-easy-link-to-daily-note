@@ -17,9 +17,19 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		const leaf = this.app.workspace.getLeaf(false);
-		await leaf.openFile(todayFile);
+		await this.formatFile(todayFile);
 
+		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
+		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
+
+		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
+		// https://liamca.in/Obsidian/API+FAQ/views/focus+the+note+title+with+the+cursor
+		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
+	}
+
+	private async formatFile(file: TFile) {
+		const leaf = this.app.workspace.getLeaf(false);
+		await leaf.openFile(file);
 		// NOTE: Run save command to ensure the daily not is formatted
 		const saveCommandDefinition =
 			// @ts-expect-error
@@ -30,13 +40,6 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			// wait for the file to be saved
 			await sleep(50);
 		}
-
-		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
-		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
-
-		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
-		// https://liamca.in/Obsidian/API+FAQ/views/focus+the+note+title+with+the+cursor
-		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
 	}
 
 	private getTodayFileAndPath() {
@@ -105,6 +108,9 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			this.registerEvent(
 				this.app.vault.on("create", async (file: TFile) => {
 					if (!this.settings.shouldAppendWebClipper) return;
+
+					const { todayFile } = this.getTodayFileAndPath();
+					await this.formatFile(todayFile);
 
 					const append = async () => {
 						if (!this.app.metadataCache.resolvedLinks[file.path]) {
