@@ -24,6 +24,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
 		// https://liamca.in/Obsidian/API+FAQ/views/focus+the+note+title+with+the+cursor
+		const leaf = this.app.workspace.getLeaf(false);
 		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
 	}
 
