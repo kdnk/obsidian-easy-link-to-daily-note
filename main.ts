@@ -18,7 +18,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		await this.formatFile(todayFile);
+		await this.openAndFormatFile(todayFile);
 
 		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
 		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
@@ -29,7 +29,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
 	}
 
-	private async formatFile(file: TFile) {
+	private async openAndFormatFile(file: TFile) {
 		const leaf = this.app.workspace.getLeaf(false);
 		await leaf.openFile(file);
 		// NOTE: Run save command to ensure the daily not is formatted
@@ -114,7 +114,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 					if (!this.settings.shouldAppendWebClipper) return;
 
 					const { todayFile } = this.getTodayFileAndPath();
-					await this.formatFile(todayFile);
+					await this.openAndFormatFile(todayFile);
 
 					const append = async () => {
 						if (!this.app.metadataCache.resolvedLinks[file.path]) {
