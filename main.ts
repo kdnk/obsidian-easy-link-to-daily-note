@@ -6,6 +6,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default class EasyLinkToDailyNotePlugin extends Plugin {
 	settings: EasyLinkToDailyNoteSettings;
+	private originalSaveCallback: (checking: boolean) => boolean | void;
 
 	constructor(app: App, pluginManifest: PluginManifest) {
 		super(app, pluginManifest);
@@ -35,9 +36,11 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const saveCommandDefinition =
 			// @ts-expect-error
 			this.app?.commands?.commands?.["editor:save-file"];
-		const save = saveCommandDefinition?.callback;
+		const save = saveCommandDefinition?.checkCallback;
 		if (typeof save === "function") {
-			await save();
+			this.originalSaveCallback = save;
+			const checking = false;
+			await save(checking);
 			// wait for the file to be saved
 			await sleep(50);
 		}
