@@ -113,9 +113,6 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 				this.app.vault.on("create", async (file: TFile) => {
 					if (!this.settings.shouldAppendWebClipper) return;
 
-					const { todayFile } = this.getTodayFileAndPath();
-					await this.openAndFormatFile(todayFile);
-
 					const append = async () => {
 						if (!this.app.metadataCache.resolvedLinks[file.path]) {
 							await sleep(50);
@@ -130,7 +127,9 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 							if (!tags) return;
 							if (!tags.includes("clippings")) return;
+
 							const { todayFile } = this.getTodayFileAndPath();
+							await this.openAndFormatFile(todayFile);
 							const currentTime = window.moment().format("HH:mm");
 							this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
 							return;
