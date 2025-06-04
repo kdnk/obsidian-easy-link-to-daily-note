@@ -18,7 +18,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		await this.openAndFormatFile(todayFile);
+		await this.openFile(todayFile);
 
 		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
 		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
@@ -29,21 +29,21 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		await leaf.openFile(uniqueFile, { eState: { rename: "end" } });
 	}
 
-	private async openAndFormatFile(file: TFile) {
+	private async openFile(file: TFile) {
 		const leaf = this.app.workspace.getLeaf(false);
 		await leaf.openFile(file);
-		// NOTE: Run save command to ensure the daily not is formatted
-		const saveCommandDefinition =
-			// @ts-expect-error
-			this.app?.commands?.commands?.["editor:save-file"];
-		const save = saveCommandDefinition?.checkCallback;
-		if (typeof save === "function") {
-			this.originalSaveCallback = save;
-			const checking = false;
-			await save(checking);
-			// wait for the file to be saved
-			await sleep(50);
-		}
+		// // NOTE: Run save command to ensure the daily not is formatted
+		// const saveCommandDefinition =
+		// 	// @ts-expect-error
+		// 	this.app?.commands?.commands?.["editor:save-file"];
+		// const save = saveCommandDefinition?.checkCallback;
+		// if (typeof save === "function") {
+		// 	this.originalSaveCallback = save;
+		// 	const checking = false;
+		// 	await save(checking);
+		// 	// wait for the file to be saved
+		// 	await sleep(300);
+		// }
 	}
 
 	private getTodayFileAndPath() {
@@ -129,7 +129,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 							if (!tags.includes("clippings")) return;
 
 							const { todayFile } = this.getTodayFileAndPath();
-							await this.openAndFormatFile(todayFile);
+							await this.openFile(todayFile);
 							const currentTime = window.moment().format("HH:mm");
 							this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
 							return;
