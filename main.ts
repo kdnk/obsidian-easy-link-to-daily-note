@@ -18,10 +18,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
-		await this.openFile(todayFile);
-
+		await this.app.vault.append(todayFile, `\n- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
 		const uniqueFile = await this.app.vault.create(`${uniqueNotePath}`, `- [[${this.getCanonicalFileName(todayPath)}]] ${currentTime}`);
-		await this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(uniqueNotePath)}]]`);
 
 		// https://docs.obsidian.md/Reference/TypeScript+API/WorkspaceLeaf/openFile
 		// https://liamca.in/Obsidian/API+FAQ/views/focus+the+note+title+with+the+cursor
