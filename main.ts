@@ -129,7 +129,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 							const { todayFile } = this.getTodayFileAndPath();
 							await this.openFile(todayFile);
 							const currentTime = window.moment().format("HH:mm");
-							this.app.vault.append(todayFile, `- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
+							this.app.vault.append(todayFile, `\n- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
 							return;
 						}
 					};
