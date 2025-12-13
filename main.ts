@@ -106,7 +106,6 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(() => {
-			const processedFileMap = new Map<string, boolean>();
 			this.registerEvent(
 				this.app.vault.on("create", async (file: TFile) => {
 					if (!this.settings.shouldAppendWebClipper) return;
@@ -117,7 +116,6 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 							await append();
 							return;
 						} else {
-							processedFileMap.set(file.path, true);
 							const unprocessedContent = await this.app.vault.read(file);
 							const fileContent = unprocessedContent.normalize("NFC");
 							const { frontmatter } = getFrontMatterInfo(fileContent);
@@ -129,7 +127,11 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 							const { todayFile } = this.getTodayFileAndPath();
 							await this.openFile(todayFile);
 							const currentTime = window.moment().format("HH:mm");
-							this.app.vault.append(todayFile, `\n- ${currentTime} [[${this.getCanonicalFileName(file.path)}]] `);
+							const linkText = `[[${this.getCanonicalFileName(file.path)}]]`;
+							const todayContent = await this.app.vault.read(todayFile);
+							if (!todayContent.includes(linkText)) {
+								this.app.vault.append(todayFile, `\n- ${currentTime} ${linkText} `);
+							}
 							return;
 						}
 					};
