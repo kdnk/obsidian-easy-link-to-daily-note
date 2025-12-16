@@ -46,7 +46,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	}
 
 	private getTodayFileAndPath() {
-		const journalDir = this.settings.dailyNoteDir;
+		const journalDir = this.app.internalPlugins.getEnabledPluginById("daily-notes")?.options?.folder as string | undefined;
+
 		if (!journalDir) {
 			new Notice("Please set the daily note directory in the plugin settings.");
 			throw new Error("Please set the daily note directory in the plugin settings.");
@@ -81,7 +82,11 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			fileName = fileName.slice(baseDir.length + 1);
 		}
 
-		const journalDir = this.settings.dailyNoteDir;
+		const journalDir = this.app.internalPlugins.getEnabledPluginById("daily-notes")?.options?.folder as string | undefined;
+		if (!journalDir) {
+			new Notice("Please set the daily note directory in the plugin settings.");
+			throw new Error("Please set the daily note directory in the plugin settings.");
+		}
 		if (path.startsWith(`${journalDir}/`)) {
 			fileName = fileName.slice(journalDir.length + 1);
 		}

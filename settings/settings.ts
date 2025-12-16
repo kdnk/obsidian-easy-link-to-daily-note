@@ -12,19 +12,6 @@ export class EasyLinkToDailyNotePluginSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		// Setting for daily note directory
-		new Setting(containerEl)
-			.setName("Daily note directory")
-			.setDesc("Enter the directory where daily notes are stored.")
-			.addText((text) => {
-				text.setPlaceholder("e.g. journals\n")
-					.setValue(this.plugin.settings.dailyNoteDir)
-					.onChange(async (value) => {
-						this.plugin.settings.dailyNoteDir = value;
-						await this.plugin.saveData(this.plugin.settings);
-					});
-			});
-
 		// Setting for web clipper
 		new Setting(containerEl)
 			.setName("Append web clipper's link to daily note")
