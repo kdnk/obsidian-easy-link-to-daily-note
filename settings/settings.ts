@@ -12,19 +12,6 @@ export class EasyLinkToDailyNotePluginSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		// Setting for base directory
-		new Setting(containerEl)
-			.setName("Base directory")
-			.setDesc("Enter the directory to be treated as the base directory.")
-			.addText((text) => {
-				text.setPlaceholder("e.g. pages\n")
-					.setValue(this.plugin.settings.baseDir)
-					.onChange(async (value) => {
-						this.plugin.settings.baseDir = value;
-						await this.plugin.saveData(this.plugin.settings);
-					});
-			});
-
 		// Setting for daily note directory
 		new Setting(containerEl)
 			.setName("Daily note directory")
@@ -43,12 +30,10 @@ export class EasyLinkToDailyNotePluginSettingsTab extends PluginSettingTab {
 			.setName("Append web clipper's link to daily note")
 			.setDesc("")
 			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.shouldAppendWebClipper)
-					.onChange(async (value) => {
-						this.plugin.settings.shouldAppendWebClipper = value;
-						await this.plugin.saveData(this.plugin.settings);
-					});
+				toggle.setValue(this.plugin.settings.shouldAppendWebClipper).onChange(async (value) => {
+					this.plugin.settings.shouldAppendWebClipper = value;
+					await this.plugin.saveData(this.plugin.settings);
+				});
 			});
 	}
 }

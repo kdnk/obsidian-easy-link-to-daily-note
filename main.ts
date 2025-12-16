@@ -14,7 +14,8 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 
 	async addUniqueNote() {
 		const { todayFile, todayPath } = this.getTodayFileAndPath();
-		const baseDir = this.settings.baseDir;
+		const baseDir = this.app.vault.getConfig("newFileFolderPath");
+
 		const uniqueNotePath = `${baseDir}/${window.moment().format("YYYY-MM-DD-HH-mm-ss")}.md`;
 		const currentTime = window.moment().format("HH:mm");
 
@@ -70,7 +71,7 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 			fileName = fileName.slice(0, -3);
 		}
 
-		const baseDir = this.settings.baseDir;
+		const baseDir = this.app.vault.getConfig("newFileFolderPath");
 		if (!baseDir) {
 			new Notice("Please set the base directory in the plugin settings.");
 			throw new Error("Please set the base directory in the plugin settings.");
