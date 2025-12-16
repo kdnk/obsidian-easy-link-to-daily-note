@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-easy-link-to-daily-note",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "A simple plugin to link new notes to the daily note.",
 	"main": "main.js",
 	"scripts": {
