@@ -1,4 +1,5 @@
 import { App, parseYaml, getFrontMatterInfo, Notice, Plugin, PluginManifest, TFile } from "obsidian";
+import { runAfterSync } from "./run-after-sync";
 import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
 import { DEFAULT_SETTINGS, EasyLinkToDailyNoteSettings } from "./settings/settings-info";
 
@@ -134,10 +135,12 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 							await this.openFile(todayFile);
 							const currentTime = window.moment().format("HH:mm");
 							const linkText = `[[${this.getCanonicalFileName(file.path)}]]`;
-							const todayContent = await this.app.vault.read(todayFile);
-							if (!todayContent.includes(linkText)) {
-								this.app.vault.append(todayFile, `\n- ${currentTime} ${linkText} `);
-							}
+							runAfterSync.call(this, async () => {
+								const todayContent = await this.app.vault.read(todayFile);
+								if (!todayContent.includes(linkText)) {
+									this.app.vault.append(todayFile, `\n- ${currentTime} ${linkText} `);
+								}
+							});
 							return;
 						}
 					};
