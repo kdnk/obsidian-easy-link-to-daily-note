@@ -3,11 +3,12 @@ import { runAfterSync } from "./run-after-sync";
 import { EasyLinkToDailyNotePluginSettingsTab } from "./settings/settings";
 import { DEFAULT_SETTINGS, EasyLinkToDailyNoteSettings } from "./settings/settings-info";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export default class EasyLinkToDailyNotePlugin extends Plugin {
 	settings: EasyLinkToDailyNoteSettings;
-	private originalSaveCallback: (checking: boolean) => boolean | void;
+	private active = true;
+	private monitoringStartedAt = Infinity;
+	private seenFiles = new WeakSet<TFile>();
+	private pendingClippings = new Set<TFile>();
 
 	constructor(app: App, pluginManifest: PluginManifest) {
 		super(app, pluginManifest);
@@ -32,18 +33,54 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	private async openFile(file: TFile) {
 		const leaf = this.app.workspace.getLeaf(false);
 		await leaf.openFile(file);
-		// // NOTE: Run save command to ensure the daily not is formatted
-		// const saveCommandDefinition =
-		// 	// @ts-expect-error
-		// 	this.app?.commands?.commands?.["editor:save-file"];
-		// const save = saveCommandDefinition?.checkCallback;
-		// if (typeof save === "function") {
-		// 	this.originalSaveCallback = save;
-		// 	const checking = false;
-		// 	await save(checking);
-		// 	// wait for the file to be saved
-		// 	await sleep(300);
-		// }
+	}
+
+	private canAppend(file: TFile): boolean {
+		return this.active && this.settings.shouldAppendWebClipper
+			&& this.app.vault.getAbstractFileByPath(file.path) === file
+			&& Number.isFinite(file.stat.ctime)
+			&& file.stat.ctime >= this.monitoringStartedAt;
+	}
+
+	private processPendingClippings(): void {
+		for (const file of this.pendingClippings) {
+			if (!this.canAppend(file)) {
+				this.pendingClippings.delete(file);
+				continue;
+			}
+			// Resolution events resume pending imports without polling or a time limit.
+			if (!this.app.metadataCache.resolvedLinks[file.path]) continue;
+			this.pendingClippings.delete(file);
+			void this.appendClipping(file).catch(error => {
+				console.error("Failed to append clipping to daily note", error);
+				new Notice("Failed to append clipping to daily note. Check the console for details.");
+			});
+		}
+	}
+
+	private async appendClipping(file: TFile): Promise<void> {
+		if (!this.canAppend(file)) return;
+		const content = await this.app.vault.read(file);
+		if (!this.canAppend(file)) return;
+		const { frontmatter } = getFrontMatterInfo(content.normalize("NFC"));
+		const tags = parseYaml(frontmatter)?.tags;
+		if (!(Array.isArray(tags) || typeof tags === "string") || !tags.includes("clippings")) return;
+		const { todayFile } = this.getTodayFileAndPath();
+		const currentTime = window.moment().format("HH:mm");
+
+		runAfterSync.call(this, async () => {
+			if (!this.canAppend(file)) return;
+			let appended = false;
+			await this.app.vault.process(todayFile, todayContent => {
+				if (!this.canAppend(file)) return todayContent;
+				// A filename repair may have run during the metadata or Sync wait.
+				const linkText = `[[${this.getCanonicalFileName(file.path)}]]`;
+				if (todayContent.includes(linkText)) return todayContent;
+				appended = true;
+				return `${todayContent}\n- ${currentTime} ${linkText} `;
+			});
+			if (appended && this.active) await this.openFile(todayFile);
+		});
 	}
 
 	private getTodayFileAndPath() {
@@ -96,7 +133,9 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 	}
 
 	async onload() {
+		this.register(() => { this.active = false; this.pendingClippings.clear(); });
 		await this.loadSettings();
+		if (!this.active) return;
 		this.addSettingTab(new EasyLinkToDailyNotePluginSettingsTab(this.app, this));
 
 		// This adds a simple command that can be triggered anywhere
@@ -113,38 +152,21 @@ export default class EasyLinkToDailyNotePlugin extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(() => {
+			if (!this.active) return;
+			this.monitoringStartedAt = Date.now();
+			for (const file of this.app.vault.getMarkdownFiles()) this.seenFiles.add(file);
+			this.registerEvent(this.app.metadataCache.on("resolved", () => this.processPendingClippings()));
+			this.registerEvent(this.app.vault.on("delete", file => {
+				if (file instanceof TFile) this.pendingClippings.delete(file);
+			}));
 			this.registerEvent(
-				this.app.vault.on("create", async (file: TFile) => {
-					if (!this.settings.shouldAppendWebClipper) return;
-
-					const append = async () => {
-						if (!this.app.metadataCache.resolvedLinks[file.path]) {
-							await sleep(50);
-							await append();
-							return;
-						} else {
-							const unprocessedContent = await this.app.vault.read(file);
-							const fileContent = unprocessedContent.normalize("NFC");
-							const { frontmatter } = getFrontMatterInfo(fileContent);
-							const tags = parseYaml(frontmatter)?.tags;
-
-							if (!tags) return;
-							if (!tags.includes("clippings")) return;
-
-							const { todayFile } = this.getTodayFileAndPath();
-							await this.openFile(todayFile);
-							const currentTime = window.moment().format("HH:mm");
-							const linkText = `[[${this.getCanonicalFileName(file.path)}]]`;
-							runAfterSync.call(this, async () => {
-								const todayContent = await this.app.vault.read(todayFile);
-								if (!todayContent.includes(linkText)) {
-									this.app.vault.append(todayFile, `\n- ${currentTime} ${linkText} `);
-								}
-							});
-							return;
-						}
-					};
-					await append();
+				this.app.vault.on("create", file => {
+					if (!(file instanceof TFile) || file.extension !== "md" || this.seenFiles.has(file)) return;
+					this.seenFiles.add(file);
+					// Sync can emit create for old notes. ctime, unlike mtime or event time,
+					// retains their original creation time through filename repairs.
+					this.pendingClippings.add(file);
+					this.processPendingClippings();
 				}),
 			);
 		});

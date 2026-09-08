@@ -1,0 +1,4 @@
+- Automatic clipping links
+    - Treat vault `create` events as arrivals, not proof of newly authored notes. Register after layout readiness, exclude loaded files, and check original creation time before logging a clipping.
+    - After asynchronous waits, recheck plugin state and file identity, and derive links from the current file path. Cancel deferred Sync callbacks on unload.
+    - Deduplicate and append within `vault.process` so concurrent arrivals preserve the daily note. Open it only when a link was added.

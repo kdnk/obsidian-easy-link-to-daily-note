@@ -53,10 +53,34 @@ It is useful for workflows where you want to capture quick notes without naming 
 2. Enable `Append web clipper's link to daily note`.
 3. When a newly created note contains the `clippings` tag, the plugin appends a link to today's daily note if the link is not already present.
 
+Automatic monitoring starts after the vault layout is ready. Notes already loaded
+at that point, and notes whose original creation time predates monitoring, are
+ignored. This prevents old clippings arriving through Sync or filename repair
+from being logged as new captures. Enabling or reloading the plugin does not
+backfill existing clippings.
+
+The plugin uses the file's creation time, not its last-modified time or the time
+of a `create` event. An importer that resets an old note's creation time to the
+present can still make it look new. Files with an unknown creation time,
+folders, and attachments are excluded.
+
+New clippings wait for metadata resolution and then for Sync, when enabled.
+The daily note and capture time are preserved across the Sync wait, while the
+link uses the clipping's current filename. Repeated notifications
+for the same file are handled once, and deleted or replaced files are skipped.
+Disabling the plugin cancels pending appends. Today's note opens only when a link
+is actually added.
+
+## Development
+
+Use Node.js 22 or newer. Run `npm test` for the event regression tests and
+`npm run build` for type checking and the production bundle. Tests cover old
+Sync arrivals, startup, duplicate notifications, filename changes during waits,
+and cancellation. They substitute the vault and Obsidian API boundary; they do
+not simulate the Sync service itself.
+
 ## Command
 
 - `Create a unique note`
-
-
 
 
